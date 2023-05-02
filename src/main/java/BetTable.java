@@ -11,9 +11,45 @@ public class BetTable implements AutoCloseable {
     private PreparedStatement stmt;
     private ResultSet rs;
 
+
     public BetTable() throws SQLException {
         this.conn = DatabaseConnection.getConnection();
     }
+
+
+    /* SQL COMMANDS */
+
+    //2.1 Nova sazka
+    private final String SQL_INSERT_BET = "INSERT INTO Bet (id_match, id_customer, amount)\n" +
+            "VALUES (?, ?, ?)";
+
+    //2.2 Seznam sazek
+    private final String SQL_SELECT_BETS = "SELECT id_bet, Bet.id_match, Match.home_team, Match.away_team, Match.match_date, Bet.amount\n" +
+            "FROM Bet\n" +
+            "JOIN Match ON Bet.id_match = Match.id_match";
+
+    //2.3 Zapas, na ktery je sazka vypsana
+    private final String SQL_SELECT_BET_MATCH = "SELECT Match.id_match, Match.home_team, Match.away_team, Match.match_date\n" +
+            "FROM Bet\n" +
+            "JOIN Match ON Bet.id_match = Match.id_match\n" +
+            "WHERE Bet.id_bet = ?";
+
+    //2.4 Detail sazky
+    private final String SQL_SELECT_BET = "SELECT id_bet, Bet.id_match, Match.home_team, Match.away_team, Match.match_date, Bet.amount\n" +
+            "FROM Bet\n" +
+            "JOIN Match ON Bet.id_match = Match.id_match\n" +
+            "WHERE Bet.id_bet = ?";
+
+    //2.5 Smazani sazky
+    private final String SQL_DELETE_BET = "DELETE FROM Bet WHERE id_bet = ?";
+
+    //2.6 Vypis castek ze sazek u jednotlivych tymu
+    private final String SQL_SELECT_TEAM_AMOUNTS = "SELECT Team.team_name, SUM(Bet.amount) AS total_amount\n" +
+            "FROM Bet\n" +
+            "JOIN Match ON Bet.id_match = Match.id_match\n" +
+            "JOIN Team ON Team.id_team = Match.home_team OR Team.id_team = Match.away_team\n" +
+            "GROUP BY Team.id_team\n" +
+            "ORDER BY total_amount DESC";
 
     public static void getBetID() {
     }
@@ -24,7 +60,7 @@ public class BetTable implements AutoCloseable {
             throw new IllegalArgumentException("All fields are required.");
         }
 
-        try (CallableStatement cstmt = conn.prepareCall("{CALL add_bet(?,?,?,?,?)}")) {
+        try (CallableStatement cstmt = conn.prepareCall(SQL_INSERT_BET)) {
             cstmt.setInt(1, matchId);
             cstmt.setInt(2, userId);
             cstmt.setFloat(3, amount);
@@ -39,7 +75,7 @@ public class BetTable implements AutoCloseable {
 
     public List<Bet> getAllBets() throws SQLException {
         List<Bet> bets = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Bet")) {
+        try (PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BETS)) {
             rs = stmt.executeQuery();
             while (rs.next()) {
                 Bet bet = new Bet(
@@ -52,7 +88,7 @@ public class BetTable implements AutoCloseable {
 
     public List<Bet> getBetsByMatchId(int matchId) throws SQLException {
         List<Bet> bets = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Bet WHERE match_id = ?")) {
+        try (PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BET_MATCH)) {
             stmt.setInt(1, matchId);
             rs = stmt.executeQuery();
             while (rs.next()) {
@@ -78,7 +114,7 @@ public class BetTable implements AutoCloseable {
     }
 
     public Bet getBetById(int betId) {
-        try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM Bet WHERE bet_id = ?")) {
+        try (PreparedStatement pstmt = conn.prepareStatement(SQL_SELECT_BET)) {
             pstmt.setInt(1, betId);
             rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -115,7 +151,7 @@ public class BetTable implements AutoCloseable {
 
     public static boolean deleteBet(int betId) {
         try {
-            PreparedStatement pstmt = conn.prepareStatement("DELETE FROM Bet WHERE bet_id = ?");
+            PreparedStatement pstmt = conn.prepareStatement("SQL_DELETE_BET");
             pstmt.setInt(1, betId);
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected == 1) {
@@ -130,10 +166,9 @@ public class BetTable implements AutoCloseable {
     }
 
 
-    public void listBetAmounts(int matchId) {
+    public void listBetAmounts(int bet) {
         try {
-            PreparedStatement pstmt = conn.prepareStatement("SELECT amount FROM Bet WHERE match_id = ?");
-            pstmt.setInt(1, matchId);
+            PreparedStatement pstmt = conn.prepareStatement(SQL_SELECT_TEAM_AMOUNTS);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 float amount = rs.getFloat("amount");
