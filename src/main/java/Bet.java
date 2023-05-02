@@ -1,11 +1,9 @@
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @ToString
 @EqualsAndHashCode
@@ -13,7 +11,7 @@ public class Bet {
 
     private int betId;
 
-    private LocalDateTime betTime;
+    private Timestamp betTime;
 
     private float amount;
 
@@ -23,8 +21,16 @@ public class Bet {
 
     private int userId;
 
+    public Bet() {
+        this.betId = betId;
+        this.betTime = betTime;
+        this.amount = amount;
+        this.prediction = prediction;
+        this.matchId = matchId;
+        this.userId = userId;
+    }
+
     public void printBet() {
         System.out.println(betId + ", " + betTime + ", " + amount + ", " + prediction + ", " + matchId + ", " + userId);
     }
-
 }
