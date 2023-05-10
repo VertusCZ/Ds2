@@ -1,6 +1,7 @@
 import lombok.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,7 +22,7 @@ public class Bet {
 
     private int userId;
 
-    public Bet() {
+    public Bet(int betId, Timestamp betTime, float amount, int prediction, int matchId, int userId) {
         this.betId = betId;
         this.betTime = betTime;
         this.amount = amount;
@@ -30,7 +31,9 @@ public class Bet {
         this.userId = userId;
     }
 
+
     public void printBet() {
         System.out.println(betId + ", " + betTime + ", " + amount + ", " + prediction + ", " + matchId + ", " + userId);
     }
+
 }

@@ -79,15 +79,40 @@ public class Main {
         } else {
             System.out.println("Seznam sázek:");
             for (Bet bet : bets) {
-                System.out.println(bet.toString());
+                System.out.println("ID sázky: " + bet.getBetId());
+                System.out.println("Cas sázky: " + bet.getBetTime());
+                System.out.println("Castka: " + bet.getAmount());
+                System.out.println("Volba: " + bet.getPrediction());
+                System.out.println("ID zápasu: " + bet.getMatchId());
+                System.out.println("ID uzivatele ktery sazí: " + bet.getUserId());
+                System.out.println("-----------------------\n");
             }
         }
     }
 
 
-    private static void listMatches() {
-       // MatchTable matchTable = new MatchTable();
-       // matchTable.listMatches();
+    private static void listMatches() throws SQLException {
+        BetTable betTable = new BetTable();
+        System.out.println("Zadej ID sázky.");
+        int bet_id = sc.nextInt();
+        sc.nextLine();
+        List<Match> matches = betTable.getMatchesWithBets(bet_id);
+
+        if (matches.isEmpty()) {
+            System.out.println("Nejsou k dispozici žádné zápasy se sázkami pro sázku s ID " + bet_id);
+        } else {
+            System.out.println("Seznam zápasů se sázkami pro sázku s ID " + bet_id + ":");
+            for (Match match : matches) {
+                System.out.println("ID zápasu: " + match.getMatchId());
+                System.out.println("Skore: " + match.getScore());
+                System.out.println("Datum zápasu: " + match.getMatchDateTime());
+                System.out.println("Stav zápasu: " + match.getStatus());
+                System.out.println("Místo konání zápasu: " + match.getPlace());
+                System.out.println("ID týmu 1: " + match.getTeam1Id());
+                System.out.println("ID týmu 2: " + match.getTeam2Id());
+                System.out.println("-----------------------");
+            }
+        }
     }
 
 
@@ -112,33 +137,37 @@ public class Main {
     }
 
 
-    private static void deleteBet() {
-            System.out.print("Zadejte ID sázky: ");
-            int betId = sc.nextInt();
-            sc.nextLine();
+    private static void deleteBet() throws SQLException {
+        System.out.print("Zadejte ID sázky: ");
+        int betId = sc.nextInt();
+        sc.nextLine();
 
-            Bet bet = new Bet();
-            boolean result = BetTable.deleteBet(betId);
-            if (result) {
-                System.out.println("Sázka s ID " + betId + " byla smazána.");
-            } else {
-                System.out.println("Sázka s ID " + betId + " nebyla nalezena.");
-            }
+        BetTable betTable = new BetTable();
+        boolean result = betTable.deleteBet(betId);
+        if (result) {
+            System.out.println("Sázka s ID " + betId + " byla smazána.");
+        } else {
+            System.out.println("Sázka s ID " + betId + " nebyla nalezena.");
         }
+    }
+
+
 
 
 
     private static void listBetAmounts() throws SQLException {
-        if (!DatabaseConnection.isConnection()) {
-            System.out.println("Chyba při spojení s databází, zkontrolujte internetové připojení.");
-            return;
-        }
-
-        System.out.print("Zadejte ID zápasu: ");
+        System.out.print("Zadejte ID týmu: ");
         int matchId = sc.nextInt();
         sc.nextLine();
+
         BetTable betTable = new BetTable();
-        betTable.listBetAmounts(matchId);
+        float matchAmount = betTable.listBetAmounts(matchId);
+
+        if (matchAmount == 0) {
+            System.out.println("Tyř s ID " + matchId + " neexistuje.");
+        } else {
+            System.out.println("Celková počet sázek na zápas: " + matchAmount);
+        }
     }
 
 

@@ -1,6 +1,8 @@
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,7 +17,7 @@ public class Match {
 
     private String score;
 
-    private LocalDateTime matchDateTime;
+    private Date matchDateTime;
 
     private String status;
 
@@ -29,4 +31,6 @@ public class Match {
         System.out.println(matchId + ", " + score + ", " + matchDateTime + ", " + status + ", " + place + ", " + team1Id + ", " + team2Id);
     }
 
+    public void add(List<Match> matchs) {
+    }
 }
